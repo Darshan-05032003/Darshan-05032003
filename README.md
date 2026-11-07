@@ -1,61 +1,156 @@
-<img src="assets/banner.svg" alt="Darshan Sonawane — backend and Android engineer" width="100%">
+<a href="https://darshan-05032003.github.io/Portfolio/">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
+    <img src="assets/hero-light.svg" alt="Darshan Sonawane — backend and Android engineer" width="100%">
+  </picture>
+</a>
 
 <p align="center">
-  <a href="https://darshan-05032003.github.io/Portfolio/"><b>Try the systems live →</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
-  <a href="mailto:sonawanedarshan35@gmail.com">sonawanedarshan35@gmail.com</a>
+  <a href="https://darshan-05032003.github.io/Portfolio/">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="assets/cta-dark.svg">
+      <img src="assets/cta-light.svg" alt="Play with the systems live" width="320">
+    </picture>
+  </a>
+  <br>
+  <sub>Break an oversell race, retry a payment, try to edit a ledger, drag someone out of a geofence — in your browser.</sub>
 </p>
 
-I build backends that stay correct when twenty people click at once, and Android apps that keep working after you close them.
+<br>
 
-Every repository below follows the same rule: pick the one guarantee that matters, write the test that would catch its failure, build until it's green, and keep it green in CI with a coverage gate. The numbers are copied from each repo's own README, and you can run every one of them with `docker compose up` or `./gradlew test`.
+## Watch the guarantees hold
+
+<sub>Every card is a looping replay of the one thing that project refuses to get wrong. Click a card to open its repository.</sub>
+
+<p>
+<a href="https://github.com/Darshan-05032003/ecommerce-backend"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-race-dark.svg"><img src="assets/card-race-light.svg" alt="ecommerce-backend: 20 concurrent buyers, 5 units, exactly 5 orders" width="49%"></picture></a>
+<a href="https://github.com/Darshan-05032003/core-banking-ledger"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-ledger-dark.svg"><img src="assets/card-ledger-light.svg" alt="core-banking-ledger: double-entry, append-only, edits refused" width="49%"></picture></a>
+</p>
+<p>
+<a href="https://github.com/Darshan-05032003/CheckoutKit"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-states-dark.svg"><img src="assets/card-states-light.svg" alt="CheckoutKit: payment state machine rejecting an illegal transition" width="49%"></picture></a>
+<a href="https://github.com/Darshan-05032003/PayFlow"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-retry-dark.svg"><img src="assets/card-retry-light.svg" alt="PayFlow: payment retried twice, charged once" width="49%"></picture></a>
+</p>
+<p>
+<a href="https://github.com/Darshan-05032003/GeoGuard"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-geo-dark.svg"><img src="assets/card-geo-light.svg" alt="GeoGuard: leaving the zone triggers a push to other members" width="49%"></picture></a>
+<a href="https://github.com/Darshan-05032003/transaction-reconciliation-batch"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-recon-dark.svg"><img src="assets/card-recon-light.svg" alt="transaction-reconciliation-batch: ledger vs statement, three breaks classified" width="49%"></picture></a>
+</p>
 
 <br>
 
-## Ledger
+## Open the hood
 
-| Repository | The guarantee | Stack | Figure |
-|:--|:--|:--|--:|
-| [**core-banking-ledger**](https://github.com/Darshan-05032003/core-banking-ledger) | Money is never a number you overwrite. Double-entry, append-only (Postgres triggers reject `UPDATE`/`DELETE`), corrected only by reversal. Transfers lock rows in id order instead of `SERIALIZABLE`; idempotency decided by a unique constraint; maker-checker holds; transactional outbox to Kafka. | Java 21 · Spring Boot 4 · PostgreSQL · Kafka | **711 tests**<br>98.5% line |
-| [**ecommerce-backend**](https://github.com/Darshan-05032003/ecommerce-backend) | Stock that cannot be oversold: one conditional `UPDATE … WHERE stock >= ?` per line, lines in product-id order. A test fires 20 concurrent buyers at the last 5 units and expects exactly 5 orders. Idempotent order placement, rotating refresh-token families, emails only after commit. | Java 21 · Spring Boot 4 · MySQL · Redis | **600 tests**<br>99.3% line |
-| [**transaction-reconciliation-batch**](https://github.com/Darshan-05032003/transaction-reconciliation-batch) | Million-line statement files loaded exactly once, matched set-wise against the ledger, every break classified and resolved under maker/approver control. Restartable after a mid-run failure without duplicating work. | Java 21 · Spring Batch · PostgreSQL | **309 tests**<br>97.0% line |
-| [**CheckoutKit**](https://github.com/Darshan-05032003/CheckoutKit) | A drop-in payment SDK whose state machine cannot be pushed into an illegal state: all 49 state/event pairs tested, compare-and-set transitions, idempotent retries, and reconciliation so a timeout is never reported as "failed" while money may be captured. Published on JitPack. | Kotlin Multiplatform · Compose | **97.5%**<br>core coverage |
-| [**PayFlow**](https://github.com/Darshan-05032003/PayFlow) | A UPI payments app built the way a payments team would: idempotency keys stored before the PSP call, status polling with backoff and jitter, QR scan-to-pay, AutoPay mandates, Keystore AES-GCM, biometric lock, root detection. | Kotlin · Compose · Room · ML Kit | **1,000**<br>concurrent payments, 0 duplicates |
-| [**GeoGuard**](https://github.com/Darshan-05032003/GeoGuard) | A group safe zone that alerts every other member when someone leaves it, with the app killed. OS geofencing instead of GPS polling, WorkManager uploads that survive bad networks, deterministic event ids so a retry never duplicates an alert, server-side FCM fan-out so no secrets ship in the APK. | Kotlin · Compose · Firebase | **0**<br>secrets in the APK |
-| [**SplitSmart**](https://github.com/Darshan-05032003/SplitSmart) | Photograph a receipt, on-device OCR plus an LLM turns it into line items, split paise-exactly with proportional tax and tip, settle with one-tap UPI links. Offline-first with a regex fallback. | Kotlin · Compose · Hilt · Gemini | **95.2%**<br>domain + data coverage |
-| [**FinPay**](https://github.com/Darshan-05032003/Fin_Pay) | A fintech UI built test-first: exact-paise ledger, salted credential hashing, idempotent payments, physics-based motion, and a stress suite pushing 100,000 ledger rows and 1,000-tap storms through the real screens. | Flutter · sqflite | **1,500+ tests**<br>144 golden baselines |
-| [**ai-customer-support-agent**](https://github.com/Darshan-05032003/ai-customer-support-agent) | Classifies support tweets by intent, drafts replies grounded in a brand's history, escalates what it cannot answer and explains each decision. Reproducibility and honest evaluation over system size. | Python | **99.8%**<br>conversation-link integrity |
+<sub>Click any line to expand the design decisions behind it.</sub>
+
+<details>
+<summary><b>ecommerce-backend</b> — how 20 buyers can't oversell 5 units</summary>
+<br>
+
+- **One conditional `UPDATE` per order line:** `stock = stock − ? WHERE id = ? AND stock >= ?`. Zero affected rows rolls the whole order back. Lines are reserved in product-id order, so two orders can't deadlock.
+- **Idempotent order placement:** key, user, SHA-256 of the body and the response are stored in the order transaction. A replay returns the stored response; the same key with a different body is `422`.
+- **Refresh-token families:** 256-bit opaque tokens stored as hashes, rotated on every use. Replaying a used token revokes the whole family.
+- **Side effects only after commit:** emails run on `@TransactionalEventListener(AFTER_COMMIT)`, so a rolled-back order never sends one.
+- **Tests never sleep:** start latches for concurrency, Awaitility for async, an injected `Clock` for time. 600 tests, 99.3% line coverage on real MySQL and Redis via Testcontainers.
+
+</details>
+
+<details>
+<summary><b>core-banking-ledger</b> — why the books always balance</summary>
+<br>
+
+- **Double-entry, append-only:** every event is a journal whose debits equal its credits. Postgres triggers reject `UPDATE`, `DELETE` and `TRUNCATE` on the ledger; mistakes are corrected by a linked reversal.
+- **Lock ordering instead of `SERIALIZABLE`:** both balance rows are locked in ascending account-id order with a `lock_timeout`, so opposite transfers queue instead of deadlocking.
+- **Idempotency decided by the database:** the key is claimed by a unique insert in its own short transaction.
+- **Maker-checker with holds:** large transfers reduce available balance, not ledger balance, until a different user with the CHECKER role decides.
+- **Transactional outbox to Kafka:** the event commits with the journal; the consumer de-duplicates. 711 tests, 98.5% line coverage.
+
+</details>
+
+<details>
+<summary><b>CheckoutKit</b> — a payment that can't reach an illegal state</summary>
+<br>
+
+- **Pure transition function:** all 49 state × event pairs tested exhaustively, applied with compare-and-set so racing events can't corrupt a payment.
+- **Reconciliation over guessing:** a timeout is never reported as "failed" while money may have been captured; the SDK looks the payment up by key first.
+- **Retry storm tested:** 10,000 sessions against a gateway failing 50% of attempts never exceed `maxAttempts` per key.
+- **Kotlin Multiplatform core + Compose sheet,** published on JitPack. 97.5% core line coverage.
+
+</details>
+
+<details>
+<summary><b>PayFlow</b> — retries that never double-charge</summary>
+<br>
+
+- **Idempotency key stored in Room before the PSP call,** so a crash between "sent" and "saved" can't produce a second charge.
+- **Status polling with exponential backoff and jitter;** success only after PSP confirmation.
+- **Hardened client:** Keystore AES-GCM, biometric/PIN lock with PBKDF2 and lockout, root/tamper detection, `FLAG_SECURE`.
+- **Load-tested:** 1,000 concurrent payments against a PSP with 20% failures, 10% timeouts and 5% 5xx, zero duplicate or orphan payments.
+
+</details>
+
+<details>
+<summary><b>GeoGuard</b> — alerts that arrive with the app closed</summary>
+<br>
+
+- **OS geofencing instead of polling GPS:** battery-safe, works in the background. Trade-off accepted: 1–2 minute latency, 150 m minimum radius.
+- **Exit events survive bad networks:** BroadcastReceiver → WorkManager → Firestore with retries; deterministic event ids mean a retry can't duplicate an alert.
+- **Server-side fan-out:** a Cloud Function sends FCM to every other member, so no secrets ship in the APK.
+- **Security rules:** only members read a group, users only add themselves and only report their own exits.
+
+</details>
+
+<details>
+<summary><b>transaction-reconciliation-batch</b> — every break explained, every restart safe</summary>
+<br>
+
+- **Exactly-once ingestion:** SHA-256 duplicate check, header/trailer control totals, bad lines skipped and reported.
+- **Set-wise matching:** partitioned `FULL OUTER JOIN` by reference; every difference is classified as a break.
+- **Maker/approver resolution** with a full audit of who decided what and why.
+- **Restartable:** a job that fails mid-file resumes where it stopped without re-posting. 309 tests, 97.0% line coverage.
+
+</details>
 
 <br>
 
-## How I work
+## Same guarantees, from a terminal
 
-- **One hard guarantee per system.** Not CRUD with a UI on top. The ledger instead of the to-do app; the race test instead of the screenshot.
-- **Tests that would catch the real failure.** Concurrency tests use start latches, never `sleep`. Time-dependent code reads an injected `Clock`. Integration tests run on real databases through Testcontainers.
-- **Break it on purpose.** After each feature: a security pass, then load and chaos simulations (retry storms, 429 floods, latency spikes, partial PSP outages) with the results written into the README.
-- **A README anyone can run.** Architecture and sequence diagrams, every design decision with its trade-off, `docker compose up --build -d --wait`, and the coverage number from the last real run.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/terminal-dark.svg">
+  <img src="assets/terminal-light.svg" alt="Terminal: retried order replayed without a second charge, ledger edit refused, 711 tests passing" width="100%">
+</picture>
 
 <br>
 
 ## Kit
 
-| | |
-|:--|:--|
-| **Backend** | Java 21, Spring Boot 4, Spring Security, Spring Batch, JPA/Hibernate, Flyway, PostgreSQL, MySQL, Redis, Kafka |
-| **Android** | Kotlin, Jetpack Compose, MVVM, Hilt, Room, WorkManager, CameraX, ML Kit, Geofencing API, Keystore, Firebase (Auth, Firestore, Functions, FCM), Flutter |
-| **Testing** | JUnit 5, Mockito, Testcontainers, Awaitility, ArchUnit, JaCoCo and Kover gates, golden tests, load and chaos simulations |
-| **Delivery** | Docker multi-stage, docker compose, GitHub Actions, JitPack, Actuator, Micrometer/Prometheus |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/stack-dark.svg">
+  <img src="assets/stack-light.svg" alt="Java, Spring Boot, PostgreSQL, Kafka, Testcontainers, Kotlin, Jetpack Compose, Kotlin Multiplatform, Firebase and more" width="100%">
+</picture>
+
+<details>
+<summary><b>More repositories</b></summary>
+<br>
+
+| | | |
+|:--|:--|--:|
+| [**SplitSmart**](https://github.com/Darshan-05032003/SplitSmart) | Photograph a receipt; on-device OCR + an LLM turn it into line items; paise-exact splits; one-tap UPI settle-up. Offline-first. | 95.2% coverage |
+| [**FinPay**](https://github.com/Darshan-05032003/Fin_Pay) | Fintech UI built test-first: exact-paise ledger, idempotent payments, physics-based motion, 100,000-row stress suite. | 1,500+ tests |
+| [**ai-customer-support-agent**](https://github.com/Darshan-05032003/ai-customer-support-agent) | Classifies support tweets by intent, drafts grounded replies, escalates and explains each decision. | 99.8% link integrity |
+| [**Portfolio**](https://github.com/Darshan-05032003/Portfolio) | The live labs page: one HTML file, no framework, simulations covered by unit tests. | 21 tests |
+
+</details>
 
 <br>
 
 ## Work with me
 
-**Freelance** — well-scoped backends in Spring Boot or Android apps in Kotlin/Compose, with tests, Docker and CI from day one; or fixing concurrency, double-charge and data-integrity bugs in systems you already have. You get a repo you own, a README anyone can run, and a short walkthrough video.
+**Freelance:** Spring Boot backends or Kotlin/Compose Android apps with tests, Docker and CI from day one. I also fix concurrency, double-charge and data-integrity bugs in systems you already run. You get a repo you own, a README anyone can run, and a short walkthrough video.
 
-**Full-time** — backend or Android SDE roles on teams that care about how systems behave under load.
+**Full-time:** backend or Android SDE roles on teams that care how systems behave under load.
 
 <p>
-  <a href="mailto:sonawanedarshan35@gmail.com">sonawanedarshan35@gmail.com</a>&nbsp;&nbsp;·&nbsp;&nbsp;
-  <a href="https://darshan-05032003.github.io/Portfolio/">Portfolio</a>
+  <a href="mailto:sonawanedarshan35@gmail.com"><b>sonawanedarshan35@gmail.com</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="https://darshan-05032003.github.io/Portfolio/">Live portfolio</a>
 </p>
 
-<sub>Closing balance: oversold units 0 · double charges 0 · unbalanced journals accepted 0 · books balanced.</sub>
+<sub>Every animation on this page is a hand-written SVG with plain CSS: no JavaScript, no third-party widgets, no Actions. Source: <a href="tools/gen_svgs.py"><code>tools/gen_svgs.py</code></a>.</sub>
