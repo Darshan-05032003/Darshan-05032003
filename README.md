@@ -1,4 +1,4 @@
-<a href="https://darshan-05032003.github.io/Portfolio/">
+<a href="https://darshan.is-a.dev/">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
     <img src="assets/hero-light.svg" alt="Darshan Sonawane — backend and Android engineer" width="100%">
@@ -6,14 +6,14 @@
 </a>
 
 <p align="center">
-  <a href="https://darshan-05032003.github.io/Portfolio/">
+  <a href="https://darshan.is-a.dev/">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="assets/cta-dark.svg">
       <img src="assets/cta-light.svg" alt="Play with the systems live" width="320">
     </picture>
   </a>
   <br>
-  <sub>Break an oversell race, retry a payment, try to edit a ledger, drag someone out of a geofence — in your browser.</sub>
+  <sub>Break an oversell race, retry a payment, try to edit a ledger — in your browser.</sub>
 </p>
 
 <br>
@@ -31,7 +31,6 @@
 <a href="https://github.com/Darshan-05032003/PayFlow"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-retry-dark.svg"><img src="assets/card-retry-light.svg" alt="PayFlow: payment retried twice, charged once" width="49%"></picture></a>
 </p>
 <p>
-<a href="https://github.com/Darshan-05032003/GeoGuard"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-geo-dark.svg"><img src="assets/card-geo-light.svg" alt="GeoGuard: leaving the zone triggers a push to other members" width="49%"></picture></a>
 <a href="https://github.com/Darshan-05032003/transaction-reconciliation-batch"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-recon-dark.svg"><img src="assets/card-recon-light.svg" alt="transaction-reconciliation-batch: ledger vs statement, three breaks classified" width="49%"></picture></a>
 </p>
 
@@ -88,17 +87,6 @@
 </details>
 
 <details>
-<summary><b>GeoGuard</b> — alerts that arrive with the app closed</summary>
-<br>
-
-- **OS geofencing instead of polling GPS:** battery-safe, works in the background. Trade-off accepted: 1–2 minute latency, 150 m minimum radius.
-- **Exit events survive bad networks:** BroadcastReceiver → WorkManager → Firestore with retries; deterministic event ids mean a retry can't duplicate an alert.
-- **Server-side fan-out:** a Cloud Function sends FCM to every other member, so no secrets ship in the APK.
-- **Security rules:** only members read a group, users only add themselves and only report their own exits.
-
-</details>
-
-<details>
 <summary><b>transaction-reconciliation-batch</b> — every break explained, every restart safe</summary>
 <br>
 
@@ -150,7 +138,7 @@
 
 <p>
   <a href="mailto:sonawanedarshan35@gmail.com"><b>sonawanedarshan35@gmail.com</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
-  <a href="https://darshan-05032003.github.io/Portfolio/">Live portfolio</a>
+  <a href="https://darshan.is-a.dev/">Live portfolio</a>
 </p>
 
 <sub>Every animation on this page is a hand-written SVG with plain CSS: no JavaScript, no third-party widgets, no Actions. Source: <a href="tools/gen_svgs.py"><code>tools/gen_svgs.py</code></a>.</sub>

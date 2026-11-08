@@ -465,47 +465,6 @@ def card_retry(theme):
     return s.render()
 
 
-def card_geo(theme):
-    s, p = card(theme, "GeoGuard", "Leave the zone with the app closed. Everyone else gets a push.",
-                "Kotlin · Compose · WorkManager · Firebase", "0", "duplicate alerts on retry",
-                "GeoGuard: a member walks out of a geofenced zone and the exit event flows to a push on another member's phone")
-    C = 10.0
-    s.defs.append(f'<pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">'
-                  f'<path d="M24 0H0v24" fill="none" stroke="{p["rule"]}" stroke-width="1"/></pattern>'
-                  f'<clipPath id="map"><rect x="22" y="94" width="300" height="168"/></clipPath>')
-    s.add(f'<g clip-path="url(#map)"><rect x="22" y="94" width="300" height="168" fill="{p["paper2"]}"/>'
-          f'<rect x="22" y="94" width="300" height="168" fill="url(#grid)"/>'
-          f'<path d="M22 226 C 90 210, 150 250, 220 230 S 300 200, 322 214" stroke="{p["rule"]}" stroke-width="10" fill="none"/>'
-          f'<path d="M120 94 C 128 150, 96 200, 126 262" stroke="{p["rule"]}" stroke-width="8" fill="none"/></g>'
-          f'<rect x="22" y="94" width="300" height="168" fill="none" stroke="{p["ink"]}" stroke-width="1.2"/>')
-    s.add(f'<circle cx="150" cy="177" r="62" fill="{p["blue"]}" fill-opacity="0.10" stroke="{p["blue"]}" '
-          f'stroke-width="2" stroke-dasharray="6 5"/>')
-    s.add(text(150, 108, "safe zone · 300 m", 11, p["blue"], MONO, 600, "middle"))
-    s.add(f'<circle cx="168" cy="196" r="7" fill="{p["ink"]}"/>' + text(180, 200, "Ravi", 12, p["ink"], SANS, 600))
-    walk = s.anim(C, [(0, "transform:translate(0px,0px)"), (0.8, "transform:translate(0px,0px)", "linear"),
-                      (2.6, "transform:translate(120px,30px)"), (8.8, "transform:translate(120px,30px)", "ease-in-out"),
-                      (9.8, "transform:translate(0px,0px)"), (C, "transform:translate(0px,0px)")])
-    s.add(g(walk, f'<circle cx="140" cy="160" r="8" fill="{p["blue"]}" stroke="{p["paper3"]}" stroke-width="2"/>' +
-            text(140, 147, "Asha", 12, p["ink"], SANS, 700, "middle")))
-    ripple = s.anim(C, [(0, "transform:scale(0);opacity:0"), (1.9, "transform:scale(0);opacity:.9", "ease-out"),
-                        (2.8, "transform:scale(1);opacity:0"), (C, "transform:scale(1);opacity:0")],
-                    "transform-box:fill-box;transform-origin:center;")
-    s.add(f'<circle class="{ripple}" cx="211" cy="182" r="30" fill="none" stroke="{p["red"]}" stroke-width="2.5"/>')
-    steps = ["OS geofence: EXIT", "WorkManager (retries)", "Firestore event", "Cloud Fn → FCM"]
-    for i, st in enumerate(steps):
-        y = 96 + i * 27
-        s.add(f'<rect x="336" y="{y}" width="180" height="22" fill="{p["paper"]}"/>' + text(346, y + 15, st, 11.5, p["ink2"], MONO))
-        t = 2.1 + i * 0.4
-        s.add(g(s.window(C, t, 9.4, 0.15),
-                f'<rect x="336" y="{y}" width="180" height="22" fill="{p["blue_soft"]}"/>'
-                f'<rect x="336" y="{y}" width="3" height="22" fill="{p["blue"]}"/>' + text(346, y + 15, st, 11.5, p["ink"], MONO, 700)))
-    s.add(g(s.window(C, 3.9, 9.4, 0.4, dx=30),
-            f'<rect x="336" y="208" width="180" height="50" rx="10" fill="{p["ink"]}"/>' +
-            text(348, 226, "GeoGuard · now", 10.5, p["paper2"], MONO) +
-            text(348, 247, "Asha left the safe zone", 13, p["paper"], SANS, 700)))
-    return s.render()
-
-
 def card_recon(theme):
     s, p = card(theme, "transaction-reconciliation-batch", "Every line matched or explained. Restarts never double-post.",
                 "Java 21 · Spring Batch · PostgreSQL", "309 tests", "97.0% line coverage",
@@ -666,7 +625,6 @@ def main():
             f"card-ledger-{theme}.svg": card_ledger(theme),
             f"card-states-{theme}.svg": card_states(theme),
             f"card-retry-{theme}.svg": card_retry(theme),
-            f"card-geo-{theme}.svg": card_geo(theme),
             f"card-recon-{theme}.svg": card_recon(theme),
             f"terminal-{theme}.svg": terminal(theme),
             f"stack-{theme}.svg": marquee(theme),
