@@ -1,4 +1,4 @@
-<a href="https://darshan.is-a.dev/">
+<a href="https://darshan-portfolio-6vo.pages.dev/">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
     <img src="assets/hero-light.svg" alt="Darshan Sonawane — backend and Android engineer" width="100%">
@@ -6,7 +6,7 @@
 </a>
 
 <p align="center">
-  <a href="https://darshan.is-a.dev/">
+  <a href="https://darshan-portfolio-6vo.pages.dev/">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="assets/cta-dark.svg">
       <img src="assets/cta-light.svg" alt="Play with the systems live" width="320">
@@ -138,7 +138,7 @@
 
 <p>
   <a href="mailto:sonawanedarshan35@gmail.com"><b>sonawanedarshan35@gmail.com</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;
-  <a href="https://darshan.is-a.dev/">Live portfolio</a>
+  <a href="https://darshan-portfolio-6vo.pages.dev/">Live portfolio</a>
 </p>
 
 <sub>Every animation on this page is a hand-written SVG with plain CSS: no JavaScript, no third-party widgets, no Actions. Source: <a href="tools/gen_svgs.py"><code>tools/gen_svgs.py</code></a>.</sub>
