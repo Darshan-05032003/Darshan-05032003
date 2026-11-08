@@ -12,20 +12,21 @@ from xml.sax.saxutils import escape
 
 OUT = Path(__file__).resolve().parent.parent / "assets"
 
+# Palette matches the portfolio: graphite, one orange accent, hairlines.
 THEMES = {
-    "light": dict(paper="#E7EEE2", paper2="#DAE4D3", paper3="#F1F5EE", rule="#BFD0C8", margin="#D0786F",
-                  ink="#15213B", ink2="#4E5A70", blue="#2443B0", blue_soft="#D6DDF3", red="#B3261E",
-                  red_soft="#F2D9D3", on_blue="#FFFFFF", term_bg="#15213B", term_fg="#E7EEE2",
-                  term_dim="#8C98AE", term_prompt="#8FB3FF", term_ok="#7BD88F", term_err="#FF8A80",
-                  term_border="#15213B"),
-    "dark": dict(paper="#0E1524", paper2="#16203A", paper3="#121B2E", rule="#22304B", margin="#9A4540",
-                 ink="#E9EFE5", ink2="#9AA8BF", blue="#86A5FF", blue_soft="#24345F", red="#FF7268",
-                 red_soft="#3A1E25", on_blue="#0E1524", term_bg="#0A0F1C", term_fg="#E9EFE5",
-                 term_dim="#7D8AA3", term_prompt="#86A5FF", term_ok="#7BD88F", term_err="#FF8A80",
-                 term_border="#2A3958"),
+    "light": dict(paper="#F4F4F6", paper2="#E8E9ED", paper3="#FAFAFB", rule="#D4D6DD", margin="#E0480F",
+                  ink="#0B0B0E", ink2="#555867", blue="#D9480F", blue_soft="#FBE0D4", red="#C4261A",
+                  red_soft="#F6D8D3", on_blue="#FFFFFF", term_bg="#0B0B0E", term_fg="#F0F1FA",
+                  term_dim="#8A8D9A", term_prompt="#FF6A2F", term_ok="#7BD88F", term_err="#FF8A80",
+                  term_border="#0B0B0E"),
+    "dark": dict(paper="#0B0B0E", paper2="#15161B", paper3="#111216", rule="#24262E", margin="#FF5A1F",
+                 ink="#F0F1FA", ink2="#A3A6B4", blue="#FF5A1F", blue_soft="#3A1D12", red="#FF3B2E",
+                 red_soft="#3A1414", on_blue="#0B0B0E", term_bg="#08080A", term_fg="#F0F1FA",
+                 term_dim="#6E7180", term_prompt="#FF5A1F", term_ok="#7BD88F", term_err="#FF8A80",
+                 term_border="#24262E"),
 }
 
-SERIF = "'Bodoni 72','Didot','Bodoni Moda',Georgia,'Times New Roman',serif"
+SERIF = "'Archivo','Helvetica Neue',Helvetica,Arial,sans-serif"  # display face (expanded grotesque on the site)
 SANS = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
 MONO = "ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace"
 MONO_W = 0.6  # advance width of a monospace glyph, in em
@@ -133,89 +134,244 @@ def typed_line(svg, cycle, x, y, s, size, fill, t0, cps, t_out, family=MONO, wei
 # =============================================================================
 # HERO
 # =============================================================================
+def smooth_path(pts, S, close=False):
+    """Catmull-Rom through (x, y) metre points → cubic Bézier path in px (y up → SVG y down)."""
+    P = [(x * S, -y * S) for x, y in pts]
+    d = f"M{P[0][0]:.1f} {P[0][1]:.1f}"
+    for k in range(len(P) - 1):
+        p0 = P[k - 1] if k else P[k]; p1, p2 = P[k], P[k + 1]; p3 = P[k + 2] if k + 2 < len(P) else P[k + 1]
+        c1 = (p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6)
+        c2 = (p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6)
+        d += f" C{c1[0]:.1f} {c1[1]:.1f} {c2[0]:.1f} {c2[1]:.1f} {p2[0]:.1f} {p2[1]:.1f}"
+    return d + (" Z" if close else "")
+
+
+def poly(pts, S):
+    return "M" + " L".join(f"{x * S:.1f} {-y * S:.1f}" for x, y in pts) + " Z"
+
+
+def car_side(S, p, wheel_cls, glow_cls, rain_cls, flame_cls):
+    """Original modern F1-style car (own livery: graphite, bare carbon, one orange accent, DS 05), side view,
+    nose to the right, origin at mid-wheelbase on the ground."""
+    G, CB, A, PIN = "#202228", "#141519", "#FF5A1F", "#E9E9EC"
+    out = []
+    top = [(2.98, 0.31), (2.7, 0.39), (2.25, 0.48), (1.85, 0.56), (1.45, 0.62), (1.05, 0.66), (0.62, 0.66), (0.2, 0.64),
+           (-0.16, 0.86), (-0.2, 0.98), (-0.42, 0.97), (-0.8, 0.87), (-1.25, 0.77), (-1.75, 0.64), (-2.1, 0.54),
+           (-2.45, 0.45), (-2.62, 0.4), (-2.62, 0.32), (-2.2, 0.24), (-1.6, 0.2), (-0.4, 0.17), (1.0, 0.2), (1.6, 0.28),
+           (2.25, 0.27), (2.98, 0.27)]
+    # floor + diffuser + plank
+    out.append(f'<path d="{poly([(1.3, 0.15), (-2.25, 0.15), (-2.9, 0.4), (-2.9, 0.36), (-2.25, 0.11), (1.3, 0.11)], S)}" fill="{CB}"/>')
+    out.append(f'<path d="{smooth_path(top, S, True)}" fill="{G}"/>')
+    # carbon lower edge of the tub
+    out.append(f'<path d="{smooth_path([(2.9, 0.29), (1.6, 0.3), (1.0, 0.24), (-0.4, 0.2), (-1.6, 0.23), (-2.55, 0.33)], S)}" fill="none" stroke="{CB}" stroke-width="{0.08 * S:.1f}"/>')
+    # sidepod (downwash ramp)
+    pod = [(0.78, 0.71), (0.5, 0.71), (0.1, 0.64), (-0.45, 0.52), (-1.0, 0.41), (-1.5, 0.32), (-1.95, 0.26), (-1.95, 0.2),
+           (-1.0, 0.25), (0.1, 0.33), (0.78, 0.39)]
+    out.append(f'<path d="{smooth_path(pod, S, True)}" fill="#2a2c33"/>')
+    out.append(f'<path d="{poly([(0.8, 0.69), (0.74, 0.69), (0.74, 0.41), (0.8, 0.41)], S)}" fill="#050506"/>')
+    # accent sweep + pinstripe
+    sweep = [(2.92, 0.31), (2.4, 0.42), (1.7, 0.52), (1.0, 0.6), (0.5, 0.64), (-0.1, 0.58), (-0.7, 0.49), (-1.3, 0.44), (-1.85, 0.5), (-2.3, 0.62)]
+    out.append(f'<path d="{smooth_path(sweep, S)}" fill="none" stroke="{A}" stroke-width="{0.075 * S:.1f}" stroke-linecap="round"/>')
+    out.append(f'<path d="{smooth_path([(x, y - 0.065) for x, y in sweep[1:-1]], S)}" fill="none" stroke="{PIN}" stroke-width="{0.016 * S:.1f}" opacity=".85"/>')
+    # airbox intake, fin with number
+    out.append(f'<ellipse cx="{-0.2 * S:.1f}" cy="{-0.87 * S:.1f}" rx="{0.03 * S:.1f}" ry="{0.1 * S:.1f}" fill="#050506"/>')
+    out.append(f'<path d="{poly([(-0.95, 0.83), (-1.4, 0.95), (-2.32, 0.9), (-2.32, 0.54)], S)}" fill="{G}" stroke="#2c2e36" stroke-width="1"/>')
+    out.append(text(-1.86 * S, -0.68 * S, "05", 0.2 * S, PIN, SERIF, 600, "middle"))
+    out.append(text(-1.86 * S, -0.83 * S, "DS", 0.06 * S, A, SERIF, 600, "middle", extra='letter-spacing="1"'))
+    # driver: helmet + visor, halo
+    out.append(f'<circle cx="{-0.1 * S:.1f}" cy="{-0.79 * S:.1f}" r="{0.125 * S:.1f}" fill="{PIN}"/>')
+    out.append(f'<path d="M{-0.225 * S:.1f} {-0.77 * S:.1f} h{0.25 * S:.1f} v{0.12 * S:.1f} h{-0.25 * S:.1f} Z" fill="{G}"/>')
+    out.append(f'<rect x="{-0.12 * S:.1f}" y="{-0.84 * S:.1f}" width="{0.14 * S:.1f}" height="{0.045 * S:.1f}" rx="2" fill="#0a0b0d"/>')
+    out.append(f'<rect x="{-0.225 * S:.1f}" y="{-0.8 * S:.1f}" width="{0.25 * S:.1f}" height="{0.022 * S:.1f}" fill="{A}"/>')
+    out.append(f'<path d="{smooth_path([(-0.42, 0.66), (-0.3, 0.88), (0.0, 0.97), (0.36, 1.0)], S)} L{0.72 * S:.1f} {-0.64 * S:.1f}" fill="none" stroke="{G}" stroke-width="{0.055 * S:.1f}" stroke-linejoin="round"/>')
+    # mirror
+    out.append(f'<rect x="{0.5 * S:.1f}" y="{-0.89 * S:.1f}" width="{0.15 * S:.1f}" height="{0.055 * S:.1f}" rx="{0.027 * S:.1f}" fill="{G}"/>')
+    out.append(f'<path d="M{0.52 * S:.1f} {-0.84 * S:.1f} L{0.48 * S:.1f} {-0.7 * S:.1f}" stroke="{CB}" stroke-width="2"/>')
+    # rear wing: endplate with DS, LED strip, pylon, beam wing
+    rw = [(x - 2.38, y + 0.9) for x, y in [(0.06, -0.62), (0.06, 0.02), (-0.12, 0.17), (-0.36, 0.14), (-0.44, 0.0), (-0.44, -0.4), (-0.2, -0.62)]]
+    out.append(f'<path d="{poly([(-2.2, 0.55), (-2.45, 0.66), (-2.5, 0.8), (-2.44, 0.95), (-2.4, 0.95), (-2.45, 0.8), (-2.4, 0.67), (-2.18, 0.6)], S)}" fill="{CB}"/>')
+    out.append(f'<path d="{smooth_path(rw, S, True)}" fill="{G}" stroke="#2c2e36" stroke-width="1"/>')
+    out.append(text(-2.57 * S, -0.62 * S, "DS", 0.13 * S, A, SERIF, 600, "middle"))
+    out.append(f'<rect class="{rain_cls}" x="{-2.83 * S:.1f}" y="{-0.86 * S:.1f}" width="{0.02 * S:.1f}" height="{0.22 * S:.1f}" fill="#FF2A1A"/>')
+    out.append(f'<rect class="{rain_cls}" x="{-2.81 * S:.1f}" y="{-0.36 * S:.1f}" width="{0.03 * S:.1f}" height="{0.05 * S:.1f}" fill="#FF2A1A"/>')
+    out.append(f'<ellipse class="{flame_cls}" cx="{-2.6 * S:.1f}" cy="{-0.52 * S:.1f}" rx="{0.14 * S:.1f}" ry="{0.05 * S:.1f}" fill="#FF7A2A"/>')
+    # front wing: endplate + flaps
+    fw = [(x + 2.98, y + 0.11) for x, y in [(0.03, 0.0), (-0.62, 0.0), (-0.72, 0.02), (-0.7, 0.14), (-0.6, 0.3), (-0.36, 0.3), (-0.1, 0.26), (0.03, 0.1)]]
+    out.append(f'<path d="{smooth_path(fw, S, True)}" fill="{CB}"/>')
+    for k, (y0, x0, c) in enumerate([(0.15, 2.95, "#2a2c33"), (0.21, 2.75, "#2a2c33"), (0.27, 2.62, A)]):
+        out.append(f'<path d="M{x0 * S:.1f} {-y0 * S:.1f} L{(x0 - 0.32) * S:.1f} {-(y0 + 0.05) * S:.1f}" stroke="{c}" stroke-width="{0.03 * S:.1f}" stroke-linecap="round"/>')
+    # pitot
+    out.append(f'<path d="M{2.72 * S:.1f} {-0.42 * S:.1f} v{-0.1 * S:.1f} h{0.14 * S:.1f}" fill="none" stroke="#8b8e98" stroke-width="1.2"/>')
+    # wheels
+    for cx, cls in ((1.75, wheel_cls[0]), (-1.85, wheel_cls[1])):
+        X, Y, R = cx * S, -0.36 * S, 0.36 * S
+        out.append(f'<circle cx="{X:.1f}" cy="{Y:.1f}" r="{R:.1f}" fill="#0c0c0e"/>')
+        spokes = "".join(f'<rect x="{X + 0.05 * S:.1f}" y="{Y - 1.2:.1f}" width="{0.15 * S:.1f}" height="2.4" fill="{PIN}" opacity=".22" transform="rotate({k * 72} {X:.1f} {Y:.1f})"/>' for k in range(5))
+        marks = "".join(f'<rect x="{X + 0.305 * S:.1f}" y="{Y - 1.0:.1f}" width="{0.03 * S:.1f}" height="2" fill="#c9c9cf" transform="rotate({k * 45 + 10} {X:.1f} {Y:.1f})"/>' for k in range(8))
+        out.append(f'<g class="{cls}">'
+                   f'<circle cx="{X:.1f}" cy="{Y:.1f}" r="{0.33 * S:.1f}" fill="none" stroke="#D7262C" stroke-width="{0.012 * S:.1f}"/>{marks}'
+                   f'<circle cx="{X:.1f}" cy="{Y:.1f}" r="{0.232 * S:.1f}" fill="#1b1c21"/>'
+                   f'<circle cx="{X:.1f}" cy="{Y:.1f}" r="{0.21 * S:.1f}" fill="none" stroke="{A}" stroke-width="{0.022 * S:.1f}"/>{spokes}'
+                   f'<circle cx="{X:.1f}" cy="{Y:.1f}" r="{0.04 * S:.1f}" fill="#0b0b0d"/></g>')
+        out.append(f'<circle class="{glow_cls}" cx="{X:.1f}" cy="{Y:.1f}" r="{0.25 * S:.1f}" fill="none" stroke="#FF6A1A" stroke-width="{0.05 * S:.1f}"/>')
+    return "".join(out)
+
+
 def hero(theme):
+    """Banner in the portfolio's language: a night-circuit grid box, the car idling, revving, launching off
+    the right edge, returning under braking. Plain CSS keyframes, one 7 s loop."""
     p = THEMES[theme]
-    W, H = 1200, 400
-    s = SVG(W, H, theme, "Darshan Sonawane. Backend and Android engineer. Backends that stay correct "
-                         "under concurrency; Android apps that work with the app closed.")
-    s.defs.append(f'<pattern id="rules" width="{W}" height="32" patternUnits="userSpaceOnUse">'
-                  f'<rect width="{W}" height="32" fill="{p["paper"]}"/>'
-                  f'<rect y="31" width="{W}" height="1" fill="{p["rule"]}"/></pattern>')
-    s.add(f'<rect width="{W}" height="{H}" fill="url(#rules)" rx="10"/>')
+    W, H, C = 1200, 420, 7.0
+    BG, INK, INK2, INK3, A = "#0B0B0E", "#F0F1FA", "#A3A6B4", "#6E7180", "#FF5A1F"
+    s = SVG(W, H, theme, "Darshan Sonawane. Backend and Android engineer. An original race car idles on the grid, "
+                         "revs, launches and returns under braking.")
+    S, GROUND, CX = 94.0, 372.0, 846.0
+    s.defs.append(f'<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101117"/><stop offset=".72" stop-color="{BG}"/></linearGradient>'
+                  f'<radialGradient id="pool" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe2b0" stop-opacity=".16"/><stop offset="1" stop-color="#ffe2b0" stop-opacity="0"/></radialGradient>'
+                  f'<radialGradient id="smoke" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#b9bcc6" stop-opacity=".55"/><stop offset="1" stop-color="#b9bcc6" stop-opacity="0"/></radialGradient>'
+                  f'<linearGradient id="shade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{BG}"/><stop offset=".35" stop-color="{BG}" stop-opacity=".85"/><stop offset=".55" stop-color="{BG}" stop-opacity="0"/></linearGradient>'
+                  f'<clipPath id="frame"><rect width="{W}" height="{H}" rx="10"/></clipPath>')
+    body = []
+    body.append(f'<rect width="{W}" height="{H}" fill="url(#sky)"/>')
+    # floodlight pool + distant lamp row + grandstand lights
+    body.append(f'<ellipse cx="{CX}" cy="{GROUND - 10}" rx="420" ry="120" fill="url(#pool)"/>')
+    for k in range(9):
+        x = 40 + k * 140
+        body.append(f'<rect x="{x}" y="96" width="2" height="{GROUND - 150}" fill="#15161b"/><rect x="{x - 14}" y="92" width="30" height="5" fill="#fff1d0" opacity=".85"/>'
+                    f'<circle cx="{x + 1}" cy="94" r="16" fill="#fff1d0" opacity=".06"/>')
+    for k in range(60):
+        body.append(f'<circle cx="{(k * 97) % W}" cy="{150 + (k * 37) % 70}" r="1" fill="#ffd9a0" opacity="{0.15 + (k % 5) * 0.08:.2f}"/>')
+    # track: barrier, kerb (red/white), asphalt, painted grid box
+    body.append(f'<rect x="0" y="{GROUND - 30}" width="{W}" height="12" fill="#1a1b20"/><rect x="0" y="{GROUND - 18}" width="{W}" height="1" fill="#2c2e36"/>')
+    body.append(f'<rect x="0" y="{GROUND}" width="{W}" height="{H - GROUND}" fill="#0f1013"/>')
+    body.append("".join(f'<rect x="{x}" y="{GROUND + 30}" width="36" height="9" fill="{"#a9aab2" if (x // 36) % 2 else "#8f1d16"}"/>' for x in range(0, W, 36)))
+    body.append(f'<path d="M{CX - 250} {GROUND + 2} h500 M{CX + 250} {GROUND + 2} v22" stroke="#e9e9ec" stroke-opacity=".55" stroke-width="2" fill="none"/>')
 
-    # margin rule draws down once
-    draw = s.anim(1.2, [(0, "transform:scaleY(0)", "cubic-bezier(.6,0,.2,1)"), (1.2, "transform:scaleY(1)")],
-                  "transform-box:fill-box;transform-origin:50% 0;", loop=False)
-    s.add(g(draw, f'<rect x="126" y="0" width="1.5" height="{H}" fill="{p["margin"]}"/>'
-                  f'<rect x="130" y="0" width="1.5" height="{H}" fill="{p["margin"]}"/>'))
+    # --- motion: car x(t), squat/dive, shake amplitude, wheel angles ---
+    def car_x(t):
+        if t < 2.3: return 0.0
+        if t < 3.5: u = (t - 2.3) / 1.2; return 760 * u ** 2.2
+        if t < 4.6: return 900.0 if t < 4.05 else -1050.0
+        if t < 5.9: u = (t - 4.6) / 1.3; return -1050 * (1 - u) ** 2.4
+        return 0.0
+    def amp(t):
+        if 1.4 <= t < 2.3: return 2.3
+        if 2.3 <= t < 2.9: return 1.4 * (1 - (t - 2.3) / 0.6) + 0.3
+        return 0.35
+    def pitch(t):
+        if 2.3 <= t < 3.2: return -1.3 * min(1, (t - 2.3) / 0.25)
+        if 4.9 <= t < 5.9: return 1.4 * min(1, (5.9 - t) / 0.4) if t > 5.5 else 1.4
+        return 0.0
+    import math
+    dt, frames_x, frames_s = 0.04, [], []
+    n = int(C / dt)
+    for i in range(n + 1):
+        t = i * dt
+        frames_x.append((t, f"transform:translateX({car_x(t):.1f}px)"))
+        a = amp(t)
+        dx = a * 0.5 * math.sin(t * 97.0); dy = a * (math.sin(t * 131.0) * 0.6 + math.sin(t * 71.3) * 0.4)
+        frames_s.append((t, f"transform:translate({dx:.2f}px,{dy:.2f}px) rotate({pitch(t) + a * 0.06 * math.sin(t * 59.0):.3f}deg)"))
+    move = s.anim(C, frames_x)
+    shake = s.anim(C, frames_s, "transform-box:fill-box;transform-origin:30% 100%;")
+    R = 0.36 * S
+    def wheel_frames(rear):
+        ang, out = 0.0, []
+        for i in range(n + 1):
+            t = i * dt
+            if i:
+                v = abs(car_x(t) - car_x(t - dt)) / dt if abs(car_x(t) - car_x(t - dt)) < 400 else 0
+                if rear and 1.4 <= t < 2.3: v += 1500
+                if 3.5 <= t < 4.6: v = 0
+                ang += v * dt / R * 180 / math.pi
+            out.append([t, ang])
+        total = out[-1][1]; fix = math.ceil(total / 360) * 360 - total
+        for f in out:                                       # land on a whole turn while off-screen
+            if f[0] >= 4.05: f[1] += fix
+        return s.anim(C, [(t, f"transform:rotate({a:.1f}deg)") for t, a in out], "transform-box:fill-box;transform-origin:center;")
+    wf, wr = wheel_frames(False), wheel_frames(True)
+    glow = s.anim(C, [(0, "opacity:0"), (4.85, "opacity:0"), (5.05, "opacity:.95"), (5.7, "opacity:.7"), (6.1, "opacity:0"), (C, "opacity:0")])
+    blink = [(0, "opacity:0")]
+    for k in range(7):  # slow blink on the grid
+        blink += [(k * 0.2 + 0.0001 if k == 0 else k * 0.2, "opacity:0")]
+    rain_frames = []
+    t = 0.0
+    while t < C:
+        on = (t < 1.4 or t >= 5.9) and (int(t * 2) % 2 == 0) or (4.6 <= t < 5.9 and int(t * 8) % 2 == 0)
+        rain_frames.append((t, f"opacity:{1 if on else 0.12}", "steps(1,end)"))
+        t += 0.125
+    rain_frames.append((C, "opacity:1"))
+    rain = s.anim(C, rain_frames)
+    flame = s.anim(C, [(0, "opacity:0;transform:scaleX(.4)"), (1.45, "opacity:0;transform:scaleX(.4)"), (1.55, "opacity:.9;transform:scaleX(1)"),
+                       (1.8, "opacity:.5;transform:scaleX(.7)"), (2.0, "opacity:.95;transform:scaleX(1.1)"), (2.6, "opacity:.6;transform:scaleX(.8)"),
+                       (3.0, "opacity:0;transform:scaleX(.4)"), (C, "opacity:0;transform:scaleX(.4)")], "transform-box:fill-box;transform-origin:100% 50%;")
+    car = car_side(S, p, (wf, wr), glow, rain, flame)
+    shadow = f'<ellipse cx="0" cy="2" rx="{2.9 * S:.0f}" ry="9" fill="#000" opacity=".7"/>'
+    body.append(f'<g class="{move}"><g transform="translate({CX} {GROUND})">{shadow}<g class="{shake}">{car}</g></g></g>')
+    # tyre smoke at the rear wheel while it spins on the spot
+    for k in range(6):
+        t0 = 1.5 + k * 0.17
+        sm = s.anim(C, [(0, "opacity:0;transform:translate(0px,0px) scale(.3)"), (t0, "opacity:0;transform:translate(0px,0px) scale(.3)"),
+                        (t0 + 0.1, "opacity:.9;transform:translate(-10px,-6px) scale(.6)"),
+                        (t0 + 1.5, "opacity:0;transform:translate(-150px,-48px) scale(2.6)"), (C, "opacity:0;transform:translate(-150px,-48px) scale(2.6)")],
+                    "transform-box:fill-box;transform-origin:center;")
+        body.append(f'<circle class="{sm}" cx="{CX - 1.85 * S - 20}" cy="{GROUND - 10 - k % 3 * 6}" r="{22 + k % 3 * 6}" fill="url(#smoke)"/>')
+    # speed streaks while the car is away
+    for k in range(9):
+        y = GROUND - 120 + (k * 53) % 180
+        for r in range(3):
+            t0 = 2.7 + r * 0.6 + k * 0.07
+            st = s.anim(C, [(0, "opacity:0;transform:translateX(0px)"), (t0, "opacity:0;transform:translateX(0px)"), (t0 + 0.05, "opacity:.5;transform:translateX(-40px)"),
+                            (t0 + 0.42, "opacity:0;transform:translateX(-1500px)"), (C, "opacity:0;transform:translateX(-1500px)")])
+            body.append(f'<rect class="{st}" x="{W + 40}" y="{y}" width="{120 + (k * 31) % 160}" height="1.5" fill="#e9e9ec"/>')
 
-    once = 3.2
-    s.add(g(s.anim(once, [(0, "opacity:0"), (0.4, "opacity:0"), (1.0, "opacity:1"), (once, "opacity:1")], loop=False),
-            text(112, 58, "2026", 13, p["ink2"], anchor="end") +
-            text(112, 150, "Backend ·", 13, p["ink2"], anchor="end") +
-            text(112, 168, "Android", 13, p["ink2"], anchor="end")))
-
-    # name: ink settles in, with an underline that draws itself
+    # --- type: shaded left column so the text always reads ---
+    body.append(f'<rect width="{W}" height="{H}" fill="url(#shade)"/>')
+    body.append(text(56, 74, "BACKEND & ANDROID ENGINEER", 12, INK2, MONO, 400, extra='letter-spacing="3"'))
     def rise(t0):
-        return s.anim(t0 + 1.0, [(0, "opacity:0;transform:translateY(18px)"),
-                                 (t0, "opacity:0;transform:translateY(18px)", "cubic-bezier(.16,1,.3,1)"),
-                                 (t0 + 0.9, "opacity:1;transform:translateY(0px)"),
-                                 (t0 + 1.0, "opacity:1;transform:translateY(0px)")], loop=False)
-    s.add(g(rise(0.3), text(160, 124, "Darshan", 92, p["ink"], SERIF, 700, extra='letter-spacing="-2"')))
-    s.add(g(rise(0.75), text(205, 206, "Sonawane", 92, p["ink"], SERIF, 500, style="italic",
-                             extra='letter-spacing="-1"')))
-    ul = s.anim(2.4, [(0, "stroke-dashoffset:520"), (1.4, "stroke-dashoffset:520", "cubic-bezier(.6,0,.2,1)"),
-                      (2.4, "stroke-dashoffset:0")], loop=False)
-    s.add(f'<path class="{ul}" d="M205 224 C 320 217, 470 228, 590 219" fill="none" stroke="{p["blue"]}" '
-          f'stroke-width="3" stroke-linecap="round" stroke-dasharray="520"/>')
+        return s.anim(t0 + 1.0, [(0, "opacity:0;transform:translateY(22px)"), (t0, "opacity:0;transform:translateY(22px)", "cubic-bezier(.16,1,.3,1)"),
+                                 (t0 + 0.9, "opacity:1;transform:translateY(0px)"), (t0 + 1.0, "opacity:1;transform:translateY(0px)")], loop=False)
+    body.append(g(rise(0.2), text(52, 152, "DARSHAN", 82, INK, SERIF, 500, extra='letter-spacing="-1"')))
+    body.append(g(rise(0.45), text(52, 228, "SONAWANE", 82, INK, SERIF, 500, extra='letter-spacing="-1"')))
+    lines = ["Backends that stay correct when 20 people click at once.",
+             "Payments retried twice, charged once.",
+             "Ledgers you append to, never overwrite.",
+             "Tests first. Then the code. Then the load test."]
+    slot, cps, size = 5.0, 30, 15
+    cyc = slot * len(lines)
+    s.body.extend(body); body = []
+    s.add(text(56, 276, ">", size, A, MONO, 700))
+    for k, ln in enumerate(lines):
+        t0 = k * slot + 0.3
+        typed_line(s, cyc, 56 + MONO_W * size * 2, 276, ln, size, INK, t0, cps, t0 + slot - 0.45, caret=A)
+    pulse = s.anim(2.0, [(0, "transform:scale(1);opacity:.55"), (1.6, "transform:scale(2.6);opacity:0"), (2.0, "transform:scale(2.6);opacity:0")],
+                   "transform-box:fill-box;transform-origin:center;")
+    s.add(f'<circle class="{pulse}" cx="62" cy="{H - 34}" r="5" fill="#3ddc84"/><circle cx="62" cy="{H - 34}" r="5" fill="#3ddc84"/>')
+    s.add(text(76, H - 30, "OPEN TO BACKEND / ANDROID ROLES AND FREELANCE", 11, INK2, MONO, 400, extra='letter-spacing="2"'))
 
-    # open-to-work pulse
-    pulse = s.anim(2.0, [(0, "transform:scale(1);opacity:.55"), (1.6, "transform:scale(2.6);opacity:0"),
-                         (2.0, "transform:scale(2.6);opacity:0")], "transform-box:fill-box;transform-origin:center;")
-    s.add(f'<circle class="{pulse}" cx="166" cy="356" r="6" fill="{p["blue"]}"/>'
-          f'<circle cx="166" cy="356" r="6" fill="{p["blue"]}"/>')
-    s.add(text(182, 361, "Open to freelance and full-time backend / Android work", 14, p["ink2"]))
-
-    # rotating lede, typed
-    lines = [
-        "I build backends that stay correct when 20 people click at once.",
-        "I build Android apps that keep working after you close them.",
-        "I write the failing test first, then the code, then the load test.",
-        "I keep money in a ledger you append to, never overwrite.",
-    ]
-    slot, cps, size = 5.0, 34, 19
-    cycle = slot * len(lines)
-    s.add(text(160, 300, ">", size, p["blue"], MONO, 700))
-    x0 = 160 + MONO_W * size * 2
-    for i, ln in enumerate(lines):
-        t0 = i * slot + 0.2
-        typed_line(s, cycle, x0, 300, ln, size, p["ink"], t0, cps, t0 + slot - 0.45, caret=p["blue"])
-
-    s.add(text(160, 330, "Java · Spring Boot · PostgreSQL · Kafka · Kotlin · Jetpack Compose · Testcontainers",
-               14, p["ink2"]))
-
-    # closing balance panel with odometers
-    px, pr = 800, 1160
-    s.add(g(s.anim(once, [(0, "opacity:0"), (0.6, "opacity:0"), (1.2, "opacity:1"), (once, "opacity:1")], loop=False),
-            text(px, 52, "CLOSING BALANCE", 12, p["ink2"], extra='letter-spacing="2"') +
-            f'<rect x="{px}" y="62" width="{pr - px}" height="2" fill="{p["ink"]}"/>'))
-    rows = [("Tests across featured repos", "3,100+"), ("Oversold units in a 20-vs-5 race", "0"),
-            ("Double charges on retried payments", "0"), ("Unbalanced journals accepted", "0")]
-    for i, (label, value) in enumerate(rows):
-        y = 98 + i * 44
-        t0 = 1.0 + i * 0.35
-        s.add(g(rise(t0), text(px, y, label, 14, p["ink2"]) +
-                f'<rect x="{px}" y="{y + 14}" width="{pr - px}" height="1" fill="{p["rule"]}"/>'))
-        odometer(s, pr, y + 2, value, 30, p["ink"], t0 + 0.2)
-
-    stamp = s.anim(5.0, [(0, "opacity:0;transform:scale(1.9) rotate(-6deg)"),
-                         (3.4, "opacity:0;transform:scale(1.9) rotate(-6deg)", "cubic-bezier(.2,1.5,.4,1)"),
-                         (3.75, "opacity:1;transform:scale(1) rotate(-6deg)"),
-                         (5.0, "opacity:1;transform:scale(1) rotate(-6deg)")],
-                   "transform-box:fill-box;transform-origin:center;", loop=False)
-    s.add(g(stamp, f'<rect x="976" y="282" width="184" height="42" rx="3" fill="none" stroke="{p["red"]}" '
-                   f'stroke-width="3"/>' + text(1068, 311, "BALANCED", 19, p["red"], SANS, 800, "middle",
-                                                extra='letter-spacing="3"')))
+    # --- onboard HUD (top right) ---
+    hx, hy, hw = W - 236, 26, 206
+    s.add(f'<rect x="{hx}" y="{hy}" width="{hw}" height="96" fill="#08080a" fill-opacity=".55" stroke="#ffffff" stroke-opacity=".14"/>')
+    for k in range(10):
+        on_at = 1.45 + k * 0.07
+        col = "#F0F1FA" if k < 4 else A if k < 8 else "#FF2A1A"
+        lt = s.anim(C, [(0, "opacity:.12"), (on_at, "opacity:.12", "steps(1,end)"), (on_at + 0.01, "opacity:1"), (2.3, "opacity:1"),
+                        (2.31, "opacity:.12"), (2.4 + k * 0.09, "opacity:.12", "steps(1,end)"), (2.41 + k * 0.09, "opacity:1"),
+                        (4.6, "opacity:1"), (4.61, "opacity:.12"), (C, "opacity:.12")])
+        s.add(f'<rect class="{lt}" x="{hx + 14 + k * 18.2:.1f}" y="{hy + 14}" width="15" height="4" fill="{col}"/>')
+    phases = [(0, 1.4, "GRID · ENGINE ON"), (1.4, 2.3, "OUT OF THE BOX"), (2.3, 3.5, "LAUNCH"), (3.5, 4.6, "PUSH"), (4.6, 5.9, "BOX, BOX"), (5.9, C, "GRID · ENGINE ON")]
+    speeds = [(0, 2.3, "0", "N"), (2.3, 2.5, "64", "1"), (2.5, 2.7, "131", "3"), (2.7, 2.95, "198", "5"), (2.95, 3.25, "254", "6"), (3.25, 3.5, "298", "7"),
+              (3.5, 4.6, "331", "8"), (4.6, 4.85, "262", "7"), (4.85, 5.15, "184", "5"), (5.15, 5.45, "107", "3"), (5.45, 5.75, "41", "1"), (5.75, C, "0", "N")]
+    def step_win(t0, t1):
+        return s.anim(C, [(0, "opacity:0"), (t0, "opacity:0", "steps(1,end)"), (t0 + 0.001, "opacity:1"), (t1, "opacity:1", "steps(1,end)"), (t1 + 0.001, "opacity:0"), (C, "opacity:0")]
+                      if t0 > 0 else [(0, "opacity:1"), (t1, "opacity:1", "steps(1,end)"), (t1 + 0.001, "opacity:0"), (C, "opacity:0")])
+    for t0, t1, label in phases:
+        s.add(g(step_win(t0, t1), text(hx + 14, hy + 82, label, 11, INK2, MONO, 400, extra='letter-spacing="2"')))
+    for t0, t1, v, gear in speeds:
+        s.add(g(step_win(t0, t1), text(hx + 96, hy + 56, v, 32, INK, MONO, 400, "end") + text(hx + 176, hy + 54, gear, 22, INK, MONO, 400, "middle")))
+    s.add(text(hx + 102, hy + 56, "KM/H", 10, INK3, MONO, 400, extra='letter-spacing="1.5"'))
+    s.add(f'<rect x="{hx + 160}" y="{hy + 32}" width="32" height="30" fill="none" stroke="#ffffff" stroke-opacity=".2"/>')
+    # wrap everything in the rounded frame
+    s.body = [f'<g clip-path="url(#frame)">'] + s.body + ['</g>']
     return s.render()
 
 
@@ -255,7 +411,7 @@ CW, CH = 540, 330
 def card(theme, title, tagline, stack, figure, figure_label, label):
     p = THEMES[theme]
     s = SVG(CW, CH, theme, label)
-    s.add(f'<rect x="8" y="8" width="528" height="318" rx="4" fill="{p["ink"]}"/>'
+    s.add(f'<rect x="8" y="8" width="528" height="318" rx="4" fill="{p["rule"] if p["paper"] == "#0B0B0E" else p["ink"]}"/>'
           f'<rect x="2" y="2" width="528" height="318" rx="4" fill="{p["paper3"]}" stroke="{p["ink"]}" stroke-width="1.5"/>')
     s.add(text(22, 44, title, 28, p["ink"], SERIF, 700))
     nudge = s.anim(2.4, [(0, "transform:translate(0px,0px)"), (1.6, "transform:translate(0px,0px)"),
