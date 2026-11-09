@@ -1,7 +1,7 @@
 <a href="https://darshan-portfolio-6vo.pages.dev/">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
-    <img src="assets/hero-light.svg" alt="Darshan Sonawane — backend and Android engineer. An original race car idles on the grid, launches and returns under braking." width="100%">
+    <img src="assets/hero-light.svg" alt="Darshan Sonawane — backend and Android engineer. An original race car at speed on a night circuit, braking into a corner and powering out." width="100%">
   </picture>
 </a>
 

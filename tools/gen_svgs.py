@@ -218,13 +218,14 @@ def car_side(S, p, wheel_cls, glow_cls, rain_cls, flame_cls):
 
 
 def hero(theme):
-    """Banner in the portfolio's language: a night-circuit grid box, the car idling, revving, launching off
-    the right edge, returning under braking. Plain CSS keyframes, one 7 s loop."""
+    """Banner in the portfolio's language: the car is always running on a night circuit. The world streams
+    past at speed; it brakes (dive, glowing discs, overrun pops), rides the apex kerb, powers out.
+    Plain CSS keyframes, one 7 s loop."""
     p = THEMES[theme]
     W, H, C = 1200, 420, 7.0
     BG, INK, INK2, INK3, A = "#0B0B0E", "#F0F1FA", "#A3A6B4", "#6E7180", "#FF5A1F"
-    s = SVG(W, H, theme, "Darshan Sonawane. Backend and Android engineer. An original race car idles on the grid, "
-                         "revs, launches and returns under braking.")
+    s = SVG(W, H, theme, "Darshan Sonawane. Backend and Android engineer. An original race car at speed on a night circuit, "
+                         "braking into a corner and powering out.")
     S, GROUND, CX = 94.0, 372.0, 846.0
     s.defs.append(f'<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101117"/><stop offset=".72" stop-color="{BG}"/></linearGradient>'
                   f'<radialGradient id="pool" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe2b0" stop-opacity=".16"/><stop offset="1" stop-color="#ffe2b0" stop-opacity="0"/></radialGradient>'
@@ -233,95 +234,93 @@ def hero(theme):
                   f'<clipPath id="frame"><rect width="{W}" height="{H}" rx="10"/></clipPath>')
     body = []
     body.append(f'<rect width="{W}" height="{H}" fill="url(#sky)"/>')
-    # floodlight pool + distant lamp row + grandstand lights
+    import math
+    # --- one speed profile drives everything: push, brake, corner, power out ---
+    def v_kmh(t):
+        if t < 2.6: return 300 + 20 * (t / 2.6)                       # push
+        if t < 3.4: u = (t - 2.6) / 0.8; return 320 - 165 * (1 - (1 - u) ** 2)   # braking
+        if t < 4.5: return 155                                        # corner
+        u = (t - 4.5) / 2.5; return 155 + 145 * (1 - (1 - u) ** 2)    # full throttle
+    dt = 0.04; n = int(C / dt)
+    ts = [k * dt for k in range(n + 1)]
+    # world scroll: integrate the speed, then scale so one loop moves a whole number of every pattern
+    raw = [0.0]
+    for k in range(1, n + 1): raw.append(raw[-1] + v_kmh(ts[k]) * dt)
+    D = 5040.0                                                         # multiple of kerb (72), lamps (140), crowd (420), stripes (126)
+    dist = [r / raw[-1] * D for r in raw]
+    def world(period, par=1.0):
+        return s.anim(C, [(t, f"transform:translateX({-(d * par) % (period * 1000) if False else -d * par:.1f}px)") for t, d in zip(ts, dist)])
+    # floodlight pool (moves with the car), lamp row and grandstand lights stream past
     body.append(f'<ellipse cx="{CX}" cy="{GROUND - 10}" rx="420" ry="120" fill="url(#pool)"/>')
-    for k in range(9):
-        x = 40 + k * 140
-        body.append(f'<rect x="{x}" y="96" width="2" height="{GROUND - 150}" fill="#15161b"/><rect x="{x - 14}" y="92" width="30" height="5" fill="#fff1d0" opacity=".85"/>'
-                    f'<circle cx="{x + 1}" cy="94" r="16" fill="#fff1d0" opacity=".06"/>')
-    for k in range(60):
-        body.append(f'<circle cx="{(k * 97) % W}" cy="{150 + (k * 37) % 70}" r="1" fill="#ffd9a0" opacity="{0.15 + (k % 5) * 0.08:.2f}"/>')
-    # track: barrier, kerb (red/white), asphalt, painted grid box
+    far = world(420, 0.25)
+    crowd = "".join(f'<circle cx="{(k * 97) % 420 + 420 * m}" cy="{150 + (k * 37) % 70}" r="1" fill="#ffd9a0" opacity="{0.15 + (k % 5) * 0.08:.2f}"/>'
+                    for m in range(int((W + D * 0.25) // 420) + 2) for k in range(14))
+    body.append(f'<g class="{far}">{crowd}</g>')
+    lamps = world(140, 0.6)
+    lp = "".join(f'<rect x="{x}" y="96" width="2" height="{GROUND - 150}" fill="#15161b"/><rect x="{x - 14}" y="92" width="30" height="5" fill="#fff1d0" opacity=".85"/>'
+                 f'<circle cx="{x + 1}" cy="94" r="16" fill="#fff1d0" opacity=".06"/>' for x in range(40, int(W + D * 0.6) + 280, 140))
+    body.append(f'<g class="{lamps}">{lp}</g>')
+    # track: barrier, asphalt, kerb and painted marks stream at full speed
     body.append(f'<rect x="0" y="{GROUND - 30}" width="{W}" height="12" fill="#1a1b20"/><rect x="0" y="{GROUND - 18}" width="{W}" height="1" fill="#2c2e36"/>')
     body.append(f'<rect x="0" y="{GROUND}" width="{W}" height="{H - GROUND}" fill="#0f1013"/>')
-    body.append("".join(f'<rect x="{x}" y="{GROUND + 30}" width="36" height="9" fill="{"#a9aab2" if (x // 36) % 2 else "#8f1d16"}"/>' for x in range(0, W, 36)))
-    body.append(f'<path d="M{CX - 250} {GROUND + 2} h500 M{CX + 250} {GROUND + 2} v22" stroke="#e9e9ec" stroke-opacity=".55" stroke-width="2" fill="none"/>')
+    near = world(72, 1.0)
+    kerb = "".join(f'<rect x="{x}" y="{GROUND + 30}" width="36" height="9" fill="{"#a9aab2" if (x // 36) % 2 else "#8f1d16"}"/>' for x in range(0, int(W + D) + 72, 36))
+    marks = "".join(f'<rect x="{x}" y="{GROUND + 6}" width="60" height="2" fill="#e9e9ec" opacity=".18"/>' for x in range(0, int(W + D) + 126, 126))
+    body.append(f'<g class="{near}">{kerb}{marks}</g>')
 
-    # --- motion: car x(t), squat/dive, shake amplitude, wheel angles ---
+    # --- the car: stays in frame, dives under braking, squats on exit, vibrates with speed ---
     def car_x(t):
-        if t < 2.3: return 0.0
-        if t < 3.5: u = (t - 2.3) / 1.2; return 760 * u ** 2.2
-        if t < 4.6: return 900.0 if t < 4.05 else -1050.0
-        if t < 5.9: u = (t - 4.6) / 1.3; return -1050 * (1 - u) ** 2.4
+        if 2.6 <= t < 3.4: return 22 * math.sin((t - 2.6) / 0.8 * math.pi / 2)      # load moves forward
+        if 3.4 <= t < 4.5: return 22
+        if 4.5 <= t < 5.5: return 22 * (1 - (t - 4.5))
         return 0.0
     def amp(t):
-        if 1.4 <= t < 2.3: return 2.3
-        if 2.3 <= t < 2.9: return 1.4 * (1 - (t - 2.3) / 0.6) + 0.3
-        return 0.35
+        base = 0.35 + 0.6 * v_kmh(t) / 320
+        return base + (1.1 if 3.5 <= t < 4.4 else 0)                                 # kerb strike at the apex
     def pitch(t):
-        if 2.3 <= t < 3.2: return -1.3 * min(1, (t - 2.3) / 0.25)
-        if 4.9 <= t < 5.9: return 1.4 * min(1, (5.9 - t) / 0.4) if t > 5.5 else 1.4
+        if 2.6 <= t < 3.4: return 1.2 * min(1, (t - 2.6) / 0.15)
+        if 3.4 <= t < 3.6: return 1.2 * (1 - (t - 3.4) / 0.2)
+        if 4.5 <= t < 5.4: return -0.8 * math.sin((t - 4.5) / 0.9 * math.pi)
         return 0.0
-    import math
-    dt, frames_x, frames_s = 0.04, [], []
-    n = int(C / dt)
-    for i in range(n + 1):
-        t = i * dt
+    frames_x, frames_s = [], []
+    for t in ts:
         frames_x.append((t, f"transform:translateX({car_x(t):.1f}px)"))
         a = amp(t)
         dx = a * 0.5 * math.sin(t * 97.0); dy = a * (math.sin(t * 131.0) * 0.6 + math.sin(t * 71.3) * 0.4)
-        frames_s.append((t, f"transform:translate({dx:.2f}px,{dy:.2f}px) rotate({pitch(t) + a * 0.06 * math.sin(t * 59.0):.3f}deg)"))
+        frames_s.append((t, f"transform:translate({dx:.2f}px,{dy:.2f}px) rotate({pitch(t) + a * 0.05 * math.sin(t * 59.0):.3f}deg)"))
     move = s.anim(C, frames_x)
     shake = s.anim(C, frames_s, "transform-box:fill-box;transform-origin:30% 100%;")
     R = 0.36 * S
-    def wheel_frames(rear):
-        ang, out = 0.0, []
-        for i in range(n + 1):
-            t = i * dt
-            if i:
-                v = abs(car_x(t) - car_x(t - dt)) / dt if abs(car_x(t) - car_x(t - dt)) < 400 else 0
-                if rear and 1.4 <= t < 2.3: v += 1500
-                if 3.5 <= t < 4.6: v = 0
-                ang += v * dt / R * 180 / math.pi
-            out.append([t, ang])
-        total = out[-1][1]; fix = math.ceil(total / 360) * 360 - total
-        for f in out:                                       # land on a whole turn while off-screen
-            if f[0] >= 4.05: f[1] += fix
-        return s.anim(C, [(t, f"transform:rotate({a:.1f}deg)") for t, a in out], "transform-box:fill-box;transform-origin:center;")
-    wf, wr = wheel_frames(False), wheel_frames(True)
-    glow = s.anim(C, [(0, "opacity:0"), (4.85, "opacity:0"), (5.05, "opacity:.95"), (5.7, "opacity:.7"), (6.1, "opacity:0"), (C, "opacity:0")])
-    blink = [(0, "opacity:0")]
-    for k in range(7):  # slow blink on the grid
-        blink += [(k * 0.2 + 0.0001 if k == 0 else k * 0.2, "opacity:0")]
+    def wheel_frames():
+        # rolling without slip: angle = distance / radius; the visible strobe is fine, keep whole turns per loop
+        turns = round(D / (2 * math.pi * R))
+        scale = turns * 360 / (D / R * 180 / math.pi)
+        return s.anim(C, [(t, f"transform:rotate({d / R * 180 / math.pi * scale:.1f}deg)") for t, d in zip(ts, dist)], "transform-box:fill-box;transform-origin:center;")
+    wf = wheel_frames(); wr = wf
+    glow = s.anim(C, [(0, "opacity:0"), (2.6, "opacity:0"), (2.8, "opacity:.95"), (3.4, "opacity:.6"), (3.9, "opacity:0"), (C, "opacity:0")])
     rain_frames = []
     t = 0.0
     while t < C:
-        on = (t < 1.4 or t >= 5.9) and (int(t * 2) % 2 == 0) or (4.6 <= t < 5.9 and int(t * 8) % 2 == 0)
-        rain_frames.append((t, f"opacity:{1 if on else 0.12}", "steps(1,end)"))
+        on = 2.6 <= t < 3.6 and int(t * 8) % 2 == 0
+        rain_frames.append((t, f"opacity:{1 if on else 0.15}", "steps(1,end)"))
         t += 0.125
-    rain_frames.append((C, "opacity:1"))
+    rain_frames.append((C, "opacity:.15"))
     rain = s.anim(C, rain_frames)
-    flame = s.anim(C, [(0, "opacity:0;transform:scaleX(.4)"), (1.45, "opacity:0;transform:scaleX(.4)"), (1.55, "opacity:.9;transform:scaleX(1)"),
-                       (1.8, "opacity:.5;transform:scaleX(.7)"), (2.0, "opacity:.95;transform:scaleX(1.1)"), (2.6, "opacity:.6;transform:scaleX(.8)"),
-                       (3.0, "opacity:0;transform:scaleX(.4)"), (C, "opacity:0;transform:scaleX(.4)")], "transform-box:fill-box;transform-origin:100% 50%;")
+    flame = s.anim(C, [(0, "opacity:0;transform:scaleX(.4)"), (2.62, "opacity:0;transform:scaleX(.4)"), (2.7, "opacity:.9;transform:scaleX(1)"),
+                       (2.85, "opacity:.2;transform:scaleX(.6)"), (2.95, "opacity:.95;transform:scaleX(1.1)"), (3.1, "opacity:.3;transform:scaleX(.6)"),
+                       (3.2, "opacity:.8;transform:scaleX(1)"), (3.4, "opacity:0;transform:scaleX(.4)"), (C, "opacity:0;transform:scaleX(.4)")], "transform-box:fill-box;transform-origin:100% 50%;")
     car = car_side(S, p, (wf, wr), glow, rain, flame)
     shadow = f'<ellipse cx="0" cy="2" rx="{2.9 * S:.0f}" ry="9" fill="#000" opacity=".7"/>'
     body.append(f'<g class="{move}"><g transform="translate({CX} {GROUND})">{shadow}<g class="{shake}">{car}</g></g></g>')
-    # tyre smoke at the rear wheel while it spins on the spot
-    for k in range(6):
-        t0 = 1.5 + k * 0.17
-        sm = s.anim(C, [(0, "opacity:0;transform:translate(0px,0px) scale(.3)"), (t0, "opacity:0;transform:translate(0px,0px) scale(.3)"),
-                        (t0 + 0.1, "opacity:.9;transform:translate(-10px,-6px) scale(.6)"),
-                        (t0 + 1.5, "opacity:0;transform:translate(-150px,-48px) scale(2.6)"), (C, "opacity:0;transform:translate(-150px,-48px) scale(2.6)")],
-                    "transform-box:fill-box;transform-origin:center;")
-        body.append(f'<circle class="{sm}" cx="{CX - 1.85 * S - 20}" cy="{GROUND - 10 - k % 3 * 6}" r="{22 + k % 3 * 6}" fill="url(#smoke)"/>')
-    # speed streaks while the car is away
+    # speed streaks: always present, denser at speed
     for k in range(9):
         y = GROUND - 120 + (k * 53) % 180
-        for r in range(3):
-            t0 = 2.7 + r * 0.6 + k * 0.07
-            st = s.anim(C, [(0, "opacity:0;transform:translateX(0px)"), (t0, "opacity:0;transform:translateX(0px)"), (t0 + 0.05, "opacity:.5;transform:translateX(-40px)"),
-                            (t0 + 0.42, "opacity:0;transform:translateX(-1500px)"), (C, "opacity:0;transform:translateX(-1500px)")])
+        for r in range(4):
+            t0 = (r * 1.75 + k * 0.19) % C
+            if 2.9 <= t0 <= 4.6: continue                                  # thinner while slow in the corner
+            t1 = min(C, t0 + 0.42)
+            st = s.anim(C, [(0, "opacity:0;transform:translateX(0px)"), (t0, "opacity:0;transform:translateX(0px)"), (min(t1, t0 + 0.05), "opacity:.45;transform:translateX(-40px)"),
+                            (t1, "opacity:0;transform:translateX(-1500px)"), (C, "opacity:0;transform:translateX(-1500px)")])
             body.append(f'<rect class="{st}" x="{W + 40}" y="{y}" width="{120 + (k * 31) % 160}" height="1.5" fill="#e9e9ec"/>')
 
     # --- type: shaded left column so the text always reads ---
@@ -352,15 +351,21 @@ def hero(theme):
     hx, hy, hw = W - 236, 26, 206
     s.add(f'<rect x="{hx}" y="{hy}" width="{hw}" height="96" fill="#08080a" fill-opacity=".55" stroke="#ffffff" stroke-opacity=".14"/>')
     for k in range(10):
-        on_at = 1.45 + k * 0.07
         col = "#F0F1FA" if k < 4 else A if k < 8 else "#FF2A1A"
-        lt = s.anim(C, [(0, "opacity:.12"), (on_at, "opacity:.12", "steps(1,end)"), (on_at + 0.01, "opacity:1"), (2.3, "opacity:1"),
-                        (2.31, "opacity:.12"), (2.4 + k * 0.09, "opacity:.12", "steps(1,end)"), (2.41 + k * 0.09, "opacity:1"),
-                        (4.6, "opacity:1"), (4.61, "opacity:.12"), (C, "opacity:.12")])
+        lit = (k + 1) / 10
+        def on(t): return (0.45 + 0.55 * ((v_kmh(t) - 150) / 170)) >= lit or (4.5 <= t < 6.8 and (t - 4.5) / 2.3 >= lit * 0.9)
+        fr, t = [], 0.0
+        while t <= C + 1e-9:
+            fr.append((min(t, C), f"opacity:{1 if on(min(t, C)) else 0.12}", "steps(1,end)")); t += 0.1
+        lt = s.anim(C, fr)
         s.add(f'<rect class="{lt}" x="{hx + 14 + k * 18.2:.1f}" y="{hy + 14}" width="15" height="4" fill="{col}"/>')
-    phases = [(0, 1.4, "GRID · ENGINE ON"), (1.4, 2.3, "OUT OF THE BOX"), (2.3, 3.5, "LAUNCH"), (3.5, 4.6, "PUSH"), (4.6, 5.9, "BOX, BOX"), (5.9, C, "GRID · ENGINE ON")]
-    speeds = [(0, 2.3, "0", "N"), (2.3, 2.5, "64", "1"), (2.5, 2.7, "131", "3"), (2.7, 2.95, "198", "5"), (2.95, 3.25, "254", "6"), (3.25, 3.5, "298", "7"),
-              (3.5, 4.6, "331", "8"), (4.6, 4.85, "262", "7"), (4.85, 5.15, "184", "5"), (5.15, 5.45, "107", "3"), (5.45, 5.75, "41", "1"), (5.75, C, "0", "N")]
+    phases = [(0, 2.6, "PUSH"), (2.6, 3.4, "BRAKING"), (3.4, 4.5, "APEX"), (4.5, C, "FULL THROTTLE")]
+    speeds = []
+    edges = [x * 0.25 for x in range(int(C / 0.25) + 1)]
+    for a0, a1 in zip(edges, edges[1:]):
+        kmh = v_kmh((a0 + a1) / 2)
+        gear = 8 if kmh > 290 else 7 if kmh > 255 else 6 if kmh > 220 else 5 if kmh > 190 else 4 if kmh > 165 else 3
+        speeds.append((a0, a1, str(int(round(kmh))), str(gear)))
     def step_win(t0, t1):
         return s.anim(C, [(0, "opacity:0"), (t0, "opacity:0", "steps(1,end)"), (t0 + 0.001, "opacity:1"), (t1, "opacity:1", "steps(1,end)"), (t1 + 0.001, "opacity:0"), (C, "opacity:0")]
                       if t0 > 0 else [(0, "opacity:1"), (t1, "opacity:1", "steps(1,end)"), (t1 + 0.001, "opacity:0"), (C, "opacity:0")])
