@@ -1,43 +1,26 @@
-<a href="https://darshan-portfolio-6vo.pages.dev/">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
-    <img src="assets/hero-light.svg" alt="Darshan Sonawane, backend and Android engineer. An original race car in a SONAWANE livery at speed on a night circuit." width="100%">
-  </picture>
-</a>
+### Hey, I'm Darshan
 
-### Hi, I'm Darshan
+[![Portfolio](https://img.shields.io/badge/Portfolio-darshan--05032003.github.io-000?style=flat&logo=githubpages)](https://darshan-05032003.github.io/portfolio-v2/)
 
-Backend and Android engineer. I build systems that stay correct when it matters: orders that can't oversell, payments that can't double-charge, ledgers that always balance. Every project here is test-first and load-tested.
+I build Android apps in Kotlin and Flutter, and the Spring Boot services behind them. My portfolio, with screenshots and the engineering decisions behind each project, is [here](https://darshan-05032003.github.io/portfolio-v2/).
 
-[Portfolio](https://darshan-portfolio-6vo.pages.dev/) · [Email](mailto:sonawanedarshan35@gmail.com)
+Most of my recent work is about software that has to stay correct under pressure: payments that a retry can't charge twice, stock that can't be oversold when twenty people buy at once, and a ledger the database itself won't let you edit. Every project below is test-first and checked against the failure it's meant to prevent.
 
-#### Projects
+I'm open to Android, Flutter and backend roles, and to freelance work. You can reach me by email [here](mailto:sonawanedarshan35@gmail.com).
 
-<sub>Each card loops the one thing that project refuses to get wrong. Click a card to open the repo.</sub>
+#### Building
 
-<p>
-<a href="https://github.com/Darshan-05032003/core-banking-ledger"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-ledger-dark.svg"><img src="assets/card-ledger-light.svg" alt="core-banking-ledger: double-entry, append-only, edits refused" width="49%"></picture></a>
-<a href="https://github.com/Darshan-05032003/ecommerce-backend"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-race-dark.svg"><img src="assets/card-race-light.svg" alt="ecommerce-backend: 20 concurrent buyers, 5 units, exactly 5 orders" width="49%"></picture></a>
-</p>
-<p>
-<a href="https://github.com/Darshan-05032003/PayFlow"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-retry-dark.svg"><img src="assets/card-retry-light.svg" alt="PayFlow: payment retried twice, charged once" width="49%"></picture></a>
-<a href="https://github.com/Darshan-05032003/CheckoutKit"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-states-dark.svg"><img src="assets/card-states-light.svg" alt="CheckoutKit: payment state machine rejecting an illegal transition" width="49%"></picture></a>
-</p>
+- **[PayFlow](https://github.com/Darshan-05032003/PayFlow)** [![GitHub stars](https://img.shields.io/github/stars/Darshan-05032003/PayFlow?style=flat&color=gold)](https://github.com/Darshan-05032003/PayFlow) - Android UPI payments app (Kotlin, Compose). Compare-and-set status updates and idempotency keys mean a retried payment can't settle twice. Includes QR pay and receive, collect requests, AutoPay mandates and Keystore-encrypted storage.
+- **[SplitSmart](https://github.com/Darshan-05032003/SplitSmart)** [![GitHub stars](https://img.shields.io/github/stars/Darshan-05032003/SplitSmart?style=flat&color=gold)](https://github.com/Darshan-05032003/SplitSmart) - Photograph a bill and split it to the exact paisa. On-device ML Kit OCR plus Gemini extraction, with the LLM output validated as untrusted input; UPI settle-up links and QR codes.
+- **[CheckoutKit](https://github.com/Darshan-05032003/CheckoutKit)** [![GitHub stars](https://img.shields.io/github/stars/Darshan-05032003/CheckoutKit?style=flat&color=gold)](https://github.com/Darshan-05032003/CheckoutKit) - Kotlin Multiplatform payment SDK: a Compose payment sheet on top of a pure state machine that rejects illegal transitions. Published on JitPack and used by PayFlow.
+- **[Fin_Pay](https://github.com/Darshan-05032003/Fin_Pay)** [![GitHub stars](https://img.shields.io/github/stars/Darshan-05032003/Fin_Pay?style=flat&color=gold)](https://github.com/Darshan-05032003/Fin_Pay) - Offline-first Flutter fintech app with BLoC, clean architecture, a sqflite ledger, golden tests and GitHub Actions CI.
+- **[core-banking-ledger](https://github.com/Darshan-05032003/core-banking-ledger)** [![GitHub stars](https://img.shields.io/github/stars/Darshan-05032003/core-banking-ledger?style=flat&color=gold)](https://github.com/Darshan-05032003/core-banking-ledger) - Double-entry banking ledger in Spring Boot. PostgreSQL triggers make it append-only, transfers go through maker-checker approval, and Kafka events are published through a transactional outbox. Tested with Testcontainers.
+- **[ecommerce-backend](https://github.com/Darshan-05032003/ecommerce-backend)** [![GitHub stars](https://img.shields.io/github/stars/Darshan-05032003/ecommerce-backend?style=flat&color=gold)](https://github.com/Darshan-05032003/ecommerce-backend) - Shop backend in Spring Boot that can't oversell: a conditional stock update, idempotent checkout and rotating refresh tokens. One test runs 20 concurrent buyers against MySQL in Testcontainers.
+- **[transaction-reconciliation-batch](https://github.com/Darshan-05032003/transaction-reconciliation-batch)** [![GitHub stars](https://img.shields.io/github/stars/Darshan-05032003/transaction-reconciliation-batch?style=flat&color=gold)](https://github.com/Darshan-05032003/transaction-reconciliation-batch) - Spring Batch job that matches a bank statement against the ledger and classifies every mismatch. Partitioned and restartable, with duplicate-file detection.
+- **[portfolio-v2](https://github.com/Darshan-05032003/portfolio-v2)** [![GitHub stars](https://img.shields.io/github/stars/Darshan-05032003/portfolio-v2?style=flat&color=gold)](https://github.com/Darshan-05032003/portfolio-v2) - My portfolio, hand-written in HTML, CSS and JavaScript. It also has browser simulations of overselling, a double charge and an append-only ledger.
 
-- **[core-banking-ledger](https://github.com/Darshan-05032003/core-banking-ledger)**: Double-entry, append-only ledger with maker-checker approvals and a transactional outbox to Kafka. 711 tests, 98.5% coverage.
-- **[ecommerce-backend](https://github.com/Darshan-05032003/ecommerce-backend)**: Spring Boot store backend that never oversells under concurrent orders, with idempotent checkout and rotating refresh tokens. 600 tests, 99.3% coverage.
-- **[PayFlow](https://github.com/Darshan-05032003/PayFlow)**: Android payments app where retries never double-charge, load-tested with 1,000 concurrent payments against a failing gateway.
-- **[CheckoutKit](https://github.com/Darshan-05032003/CheckoutKit)**: Kotlin Multiplatform payment SDK built on a pure state machine, so a payment can't reach an illegal state.
-- **[transaction-reconciliation-batch](https://github.com/Darshan-05032003/transaction-reconciliation-batch)**: Restartable batch job that matches ledger against bank statements and classifies every break. 309 tests, 97.0% coverage.
-- **[SplitSmart](https://github.com/Darshan-05032003/SplitSmart)**: Snap a receipt, and on-device OCR plus an LLM turn it into line items with paise-exact splits and UPI settle-up.
+#### Also built
 
-#### Tools I use
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/stack-dark.svg">
-  <img src="assets/stack-light.svg" alt="Java, Spring Boot, PostgreSQL, Kafka, Testcontainers, Kotlin, Jetpack Compose, Kotlin Multiplatform, Docker and more" width="100%">
-</picture>
-
-#### Open to
-
-Backend or Android SDE roles, and freelance work on Spring Boot backends and Kotlin Android apps.
+- **[Learning_dashboard_app](https://github.com/Darshan-05032003/Learning_dashboard_app)** - Flutter course dashboard with feature-first clean architecture and BLoC.
+- **[Investor_Deal_App](https://github.com/Darshan-05032003/Investor_Deal_App)** - Flutter deal browser with filters and search, built with BLoC.
+- **[Portfolio](https://github.com/Darshan-05032003/Portfolio)** - An F1-themed version of my portfolio: a procedural 3D race car in three.js that brakes and corners as you scroll. Live [here](https://darshan-portfolio-6vo.pages.dev/).
